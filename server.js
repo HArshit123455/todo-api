@@ -4,6 +4,10 @@ const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 dotenv.config();
+const rateLimit = require("express-rate-limit");
+const fs = require("fs");
+const morgan = require("morgan");
+const path = require("path");
 const connectDB = require("./config/db.js");
 connectDB();
 const app = express();
@@ -57,6 +61,24 @@ function authenticateToken(req, res, next) {
     next();
   });
 }
+// Rate limiting middleware (100 requests per hour per IP)
+const limiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 100, // Max 100 requests per hour per IP
+  message: "Too many requests from this IP, please try again later.",
+});
+
+// Apply rate limiting to all requests
+app.use(limiter);
+
+// Create a write stream (append mode) for logging requests
+const accessLogStream = fs.createWriteStream(
+  path.join(__dirname, "access.log"),
+  { flags: "a" }
+);
+
+// Log requests with morgan middleware
+app.use(morgan("combined", { stream: accessLogStream }));
 
 // Search and filter todo items endpoint
 app.get("/todos", authenticateToken, async (req, res) => {
