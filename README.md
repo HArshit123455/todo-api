@@ -10,6 +10,12 @@ Install all the necessary modules by writing
 npm i
 ```
 
+## Edit .env file 
+
+```bash
+MONGO_URI= add_your_MONGO_URI
+```
+
 ## How to run Server
 
 ```bash
